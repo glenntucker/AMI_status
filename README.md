@@ -1,7 +1,7 @@
 # AMI_status
 Used to create a report of the status of current AWS Instances
 
-## os_version.py
+## Run First.py, then Second.py
 This will return the AMI used for each Auto-Scaling group in the AWS Account, along with an instance count, Creation Date and OS Version. 
 
 ## count.py

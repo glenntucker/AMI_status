@@ -7,26 +7,24 @@ asg_client = boto3.client('autoscaling')
 ec2_client = boto3.client('ec2')
 
 # Retrieve a list of Auto Scaling Groups
-# asg_response = asg_client.describe_auto_scaling_groups()
-# asg_groups = asg_response['AutoScalingGroups']
-
-# Retrieve all Auto Scaling Groups using pagination
-asg_paginator = asg_client.get_paginator('describe_auto_scaling_groups')
-asg_groups = []
-for response in asg_paginator.paginate():
-    asg_groups.extend(response['AutoScalingGroups'])
+asg_response = asg_client.describe_auto_scaling_groups()
+asg_groups = asg_response['AutoScalingGroups']
 
 # Create a dictionary to store the instance count and creation date for each AMI ID
 ami_info = defaultdict(lambda: {'count': 0, 'creation_date': ''})
 
 # Iterate through the Auto Scaling Groups
 for asg in asg_groups:
+    launch_template_name = None
+    launch_template_version = None
+
     # Check if LaunchTemplate is specified for the Auto Scaling Group
-    if 'MixedInstancesPolicy' in asg and 'LaunchTemplate' in asg['MixedInstancesPolicy']:
-        launch_template = asg['MixedInstancesPolicy']['LaunchTemplate']['LaunchTemplateSpecification']
+    if 'LaunchTemplate' in asg:
+        launch_template = asg['LaunchTemplate']
         launch_template_name = launch_template['LaunchTemplateName']
         launch_template_version = launch_template['Version']
 
+    if launch_template_name and launch_template_version:
         # Retrieve AMI ID from the launch template
         lt_response = ec2_client.describe_launch_template_versions(
             LaunchTemplateName=launch_template_name,
@@ -46,7 +44,7 @@ for asg in asg_groups:
                 ami_info[ami_id]['creation_date'] = ami_response['Images'][0]['CreationDate']
 
 # Create a CSV file to store the report
-with open('count.csv', 'w', newline='') as file:
+with open('count2.csv', 'w', newline='') as file:
     writer = csv.writer(file)
 
     # Write header row to the CSV file
